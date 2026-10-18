@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenManus 问题与解决方案梳理</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a222d;
+      --panel-2: #243041;
+      --line: #334155;
+      --text: #e8eef6;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #34d399;
+      --warn: #fbbf24;
+      --danger: #f87171;
+      --ok: #4ade80;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(1200px 500px at 10% -10%, #164e63 0%, transparent 55%),
+        radial-gradient(900px 400px at 90% 0%, #14532d 0%, transparent 50%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    header {
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(56,189,248,.12), rgba(52,211,153,.08));
+      border-radius: 18px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    header h1 {
+      margin: 0 0 10px;
+      font-size: 1.9rem;
+      letter-spacing: .02em;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 720px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .chip {
+      font-size: .82rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(15,20,25,.55);
+      color: var(--muted);
+    }
+    nav.toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    nav.toc a {
+      text-decoration: none;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: .92rem;
+      transition: border-color .2s, transform .2s;
+    }
+    nav.toc a:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px 24px 10px;
+      margin-bottom: 20px;
+    }
+    section h2 {
+      margin: 0 0 8px;
+      font-size: 1.25rem;
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+    }
+    section h3 {
+      margin: 18px 0 8px;
+      font-size: 1.02rem;
+      color: var(--accent-2);
+    }
+    .problem, .solution {
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 10px 0;
+    }
+    .problem {
+      background: rgba(248,113,113,.08);
+      border: 1px solid rgba(248,113,113,.28);
+    }
+    .solution {
+      background: rgba(74,222,128,.08);
+      border: 1px solid rgba(74,222,128,.28);
+    }
+    .label {
+      display: inline-block;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      margin-bottom: 6px;
+    }
+    .problem .label { color: var(--danger); }
+    .solution .label { color: var(--ok); }
+    ul { padding-left: 1.2rem; }
+    li { margin: 4px 0; }
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      background: var(--panel-2);
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: .9em;
+    }
+    .mermaid {
+      background: #0b1220;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 14px 0 18px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px;
+      font-size: .92rem;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--panel-2);
+      color: var(--accent);
+    }
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: .85rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>OpenManus 问题与解决方案梳理</h1>
+      <p>
+        汇总本项目联调过程中遇到的环境、模型、搜索、浏览器自动化、报告生成等问题，
+        以及对应的处理方式。可用 Mermaid 表达的流程一并画在下方。
+      </p>
+      <div class="meta">
+        <span class="chip">项目：OpenManus-cy</span>
+        <span class="chip">日期：2026-10-12</span>
+        <span class="chip">主模型：deepseek-v4.1-flash</span>
+        <span class="chip">运行方式：.venv</span>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#overview">总览流程</a>
+      <a href="#env">环境与依赖</a>
+      <a href="#llm">模型与视觉</a>
+      <a href="#search">搜索质量</a>
+      <a href="#browser">浏览器自动化</a>
+      <a href="#report">报告生成</a>
+      <a href="#timeout">超时与空响应</a>
+      <a href="#table">速查表</a>
+    </nav>
+
+    <section id="overview">
+      <h2>1. 总览：从提问到交付</h2>
+      <p>一次任务大致经历：配置/环境 → 规划与工具调用 → 搜索或浏览器取证 → 步数结束或提前终止 → 产出 Markdown 报告。</p>
+      <div class="mermaid">
+flowchart TD
+  A[用户输入任务] --> B{环境与模型就绪?}
+  B -->|否| B1[安装依赖 / 修正模型 ID / API Key]
+  B1 --> B
+  B -->|是| C[Manus 规划并调用工具]
+  C --> D{需要实时网页信息?}
+  D -->|是| E[web_search: Google → 百度 → ...]
+  E --> F{结果可靠?}
+  F -->|否| G[最后兜底 SerpAPI]
+  F -->|是| H[打开来源页 / 浏览器操作]
+  G --> H
+  D -->|否| I[本地代码 / 文件工具]
+  H --> J{资料是否足够?}
+  I --> J
+  J -->|是| K[提前写详尽 .md 并 terminate]
+  J -->|否| L[继续排查直到满 20 步]
+  L --> M[用本轮全部资料让 LLM 生成详尽完整报告]
+  K --> N[工作区交付报告]
+  M --> N
+      </div>
+    </section>
+
+    <section id="env">
+      <h2>2. 环境与依赖</h2>
+      <div class="problem">
+        <div class="label">问题</div>
+        用虚拟环境会不会比主环境效果差？导入失败、Playwright 缺浏览器、Daytona 权限等问题也曾出现。
+      </div>
+      <div class="solution">
+        <div class="label">方案</div>
+        <ul>
+          <li>能力不取决于 venv 本身，取决于依赖是否齐全、解释器是否选对。</li>
+          <li>长期推荐项目 <code>.venv</code>，用 <code>.\.venv\Scripts\python.exe main.py</code> 运行。</li>
+          <li>Cursor/VS Code 状态栏选择同一解释器，避免终端和 IDE 混用两套 Python。</li>
+          <li>Daytona 需 Full Access API Key；沙箱健康检查用准确 READY 状态与 <code>/api</code>。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="llm">
+      <h2>3. 模型与视觉识别</h2>
+      <div class="problem">
+        <div class="label">问题</div>
+        <ul>
+          <li>配置写成 <code>DEEPSEEK-V4.1-FLASH</code>，DashScope 返回 model_not_found。</li>
+          <li>日志警告：模型不支持图像，视觉理解被关闭。</li>
+        </ul>
+      </div>
+      <div class="solution">
+        <div class="label">方案</div>
+        <ul>
+          <li>正确模型 ID 为小写：<code>deepseek-v4.1-flash</code>（大小写敏感）。</li>
+          <li>官方文档确认 V4.1 Flash 支持 Vision；警告来自白名单未收录。</li>
+          <li>已在 <code>app/llm.py</code> 的 <code>MULTIMODAL_MODELS</code> 加入该模型；无图请求不再误报警告。</li>
+        </ul>
+      </div>
+      <div class="mermaid">
+flowchart LR
+  A[config.toml 配置模型名] --> B{DashScope 是否认识?}
+  B -->|DEEPSEEK-V4.1-FLASH| C[404 model_not_found]
+  B -->|deepseek-v4.1-flash| D[调用成功]
+  D --> E{白名单含视觉模型?}
+  E -->|原先没有| F[误报不支持视觉]
+  E -->|已加入| G[可按需传图识图]
+      </div>
+    </section>
+
+    <section id="search">
+      <h2>4. 搜索质量与引擎策略</h2>
+      <div class="problem">
+        <div class="label">问题</div>
+        查「2025 年 AI 趋势」却落到百度百科「2025年」、节假日页面；Google 常失败，回落 Bing 后中文年份词被当成百科词条。
+      </div>
+      <div class="solution">
+        <div class="label">方案</div>
+        <ul>
+          <li>常规顺序：<code>google → baidu → bing → duckduckgo</code>。</li>
+          <li>SerpAPI 不在常规轮询中；仅当前面结果失败或明显不可靠（年份百科、节假日等）时才调用，节省配额。</li>
+          <li>SerpAPI 的 <code>hl=zh</code> 需映射为 <code>zh-cn</code>，否则 HTTP 400。</li>
+        </ul>
+      </div>
+      <div class="mermaid">
+flowchart TD
+  Q[用户检索 query] --> G[Google 抓取]
+  G -->|成功且可靠| R[返回结果]
+  G -->|失败| B[百度]
+  B -->|成功且可靠| R
+  B -->|失败或不可靠| N[Bing / DuckDuckGo]
+  N -->|仍无可靠结果| S[SerpAPI 兜底]
+  S --> R
+  N -->|有可靠结果| R
+      </div>
+    </section>
+
+    <section id="browser">
+      <h2>5. 浏览器自动化</h2>
+      <h3>5.1 机票动态页抽不到数据</h3>
+      <div class="problem">
+        <div class="label">问题</div>
+        携程/去哪儿列表靠 JS 异步加载；自动化打开后 <code>extract_content</code> 常只看到版权或搜索框，模型于是换 Google Flights 或手机站。
+      </div>
+      <div class="solution">
+        <div class="label">方案 / 认知</div>
+        <ul>
+          <li>这是站点特性 + 反爬，不完全是配置错误。</li>
+          <li>应优先桌面列表页，用点击/等待/滚动触发加载，再抽取。</li>
+          <li>避免主动跳转 <code>m.ctrip.com</code> 等手机版。</li>
+        </ul>
+      </div>
+
+      <h3>5.2 彩色编号框</h3>
+      <div class="problem">
+        <div class="label">问题</div>
+        界面与日常 Chrome 不同；有时没有编号框，也很少滚动加载更多。
+      </div>
+      <div class="solution">
+        <div class="label">方案</div>
+        <ul>
+          <li>彩色序号是 <code>browser-use</code> 为 <code>click_element</code> 画的标注，不是网站原生 UI。</li>
+          <div class="mermaid">
+flowchart LR
+  A[扫描可点击元素] --> B[页面画彩色编号框]
+  B --> C[模型选择 index]
+  C --> D[click_element / input_text]
+  E[extract_content] --> F[只抽文字]
+  F --> G[不画编号框]
+          </div>
+          <li>修复：<code>get_state(cache_clickable_elements_hashes=True)</code>，否则元素扫描失败、编号出不来。</li>
+          <li>提示词改为：有编号优先点击；列表不全先滚动；内容出现后再 <code>extract_content</code>。</li>
+          <li>截图只在内存中以 base64 存在，默认不落盘到 workspace。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="report">
+      <h2>6. 报告生成策略</h2>
+      <div class="problem">
+        <div class="label">问题</div>
+        <ul>
+          <li>自动生成的「任务重点报告」像过程流水账（「让我继续检查…」）。</li>
+          <li>Agent 常把 20 步用在排查，没写出专题 <code>.md</code>。</li>
+        </ul>
+      </div>
+      <div class="solution">
+        <div class="label">方案（按你的规则）</div>
+        <ul>
+          <li>资料够了：提前写详尽报告并 <code>terminate</code>，不必跑满 20 步。</li>
+          <li>资料一直不齐：可以排查到第 20 步。</li>
+          <li>满 20 步后：用本轮全部素材调用 LLM 生成详尽完整报告（2 与 3 合并为一件事）。</li>
+          <li>SEO 类报告结构：核心结论 → 问题优先级 → 可操作建议 → 证据。</li>
+        </ul>
+      </div>
+      <div class="mermaid">
+stateDiagram-v2
+  [*] --> 收集资料
+  收集资料 --> 资料足够: 关键事实已齐
+  收集资料 --> 继续排查: 仍不完整
+  资料足够 --> 提前写报告: 写 .md + terminate
+  继续排查 --> 满20步: 步数耗尽
+  继续排查 --> 资料足够: 中途凑齐
+  满20步 --> LLM汇总报告: 基于本轮全部素材
+  提前写报告 --> [*]
+  LLM汇总报告 --> [*]
+      </div>
+    </section>
+
+    <section id="timeout">
+      <h2>7. 超时、卡住与空响应</h2>
+      <h3>7.1 「严格 5 秒限制」</h3>
+      <div class="problem">
+        <div class="label">问题</div>
+        模型说「网络抓取受严格 5 秒限制」，改用短超时 curl。
+      </div>
+      <div class="solution">
+        <div class="label">方案</div>
+        这是 <code>python_execute</code> 默认超时 5 秒，不是网站限速。已改为 <strong>30 秒</strong>。
+      </div>
+
+      <h3>7.2 写报告 Validation error</h3>
+      <div class="problem">
+        <div class="label">问题</div>
+        满步数后生成报告时出现 <code>Empty or invalid response from LLM</code> / Validation error。
+      </div>
+      <div class="solution">
+        <div class="label">方案 / 原因</div>
+        <ul>
+          <li>接口偶发空正文；或思考内容占满 <code>max_tokens=8192</code>，正文为空。</li>
+          <li>tenacity 会重试；日志中可见第二次成功并写出完整报告。</li>
+          <li>若仍频繁失败，可提高 <code>max_tokens</code> 或关闭/缩短思考输出。</li>
+        </ul>
+      </div>
+      <div class="mermaid">
+sequenceDiagram
+  participant M as main.py
+  participant R as ensure_detailed_report
+  participant L as deepseek-v4.1-flash
+  M->>R: 满20步，强制汇总
+  R->>L: ask(全部素材)
+  L-->>R: 空 content
+  R-->>R: Validation error / 重试
+  R->>L: ask 再次请求
+  L-->>R: 完整 Markdown
+  R-->>M: 保存 任务完整报告_*.md
+      </div>
+    </section>
+
+    <section id="table">
+      <h2>8. 速查表</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>现象</th>
+            <th>根因</th>
+            <th>处理</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>模型 404</td>
+            <td>模型名大小写错误</td>
+            <td><code>deepseek-v4.1-flash</code></td>
+          </tr>
+          <tr>
+            <td>搜索到百科年份页</td>
+            <td>抓取引擎结果偏置</td>
+            <td>Google→百度；SerpAPI 兜底</td>
+          </tr>
+          <tr>
+            <td>报告像流水账</td>
+            <td>未写专题 md / 自动摘过程话</td>
+            <td>够了就提前写；满 20 步 LLM 汇总</td>
+          </tr>
+          <tr>
+            <td>机票页无航班</td>
+            <td>动态渲染 / 反爬</td>
+            <td>点击+等待+滚动，再抽取</td>
+          </tr>
+          <tr>
+            <td>无彩色编号框</td>
+            <td>get_state 缺参 / 在做 extract</td>
+            <td>补参数；交互时优先 click</td>
+          </tr>
+          <tr>
+            <td>误报不支持视觉</td>
+            <td>白名单过时</td>
+            <td>加入 multimodal 列表</td>
+          </tr>
+          <tr>
+            <td>Execution timeout 5s</td>
+            <td>python_execute 默认超时</td>
+            <td>改为 30 秒</td>
+          </tr>
+          <tr>
+            <td>截图 1520KB 日志</td>
+            <td>内存 base64，未落盘</td>
+            <td>正常；需要文件需另加保存逻辑</td>
+          </tr>
+          <tr>
+            <td>写报告 Validation error</td>
+            <td>空响应 / token 顶满</td>
+            <td>自动重试；可调大 max_tokens</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      文件位置：workspace/OpenManus问题与解决方案梳理.html · 用浏览器直接打开即可查看图示
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "dark",
+      securityLevel: "loose",
+      flowchart: { curve: "basis", htmlLabels: true },
+      themeVariables: {
+        primaryColor: "#164e63",
+        primaryTextColor: "#e8eef6",
+        primaryBorderColor: "#38bdf8",
+        lineColor: "#94a3b8",
+        secondaryColor: "#14532d",
+        tertiaryColor: "#1a222d",
+        fontFamily: "Segoe UI, Microsoft YaHei, sans-serif"
+      }
+    });
+  </script>
+</body>
+</html>

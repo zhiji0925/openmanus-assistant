@@ -1,0 +1,2 @@
+运行输入
+.\.venv\Scripts\python.exe main.py 
